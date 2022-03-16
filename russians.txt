@@ -43,7 +43,6 @@ www.gosuslugi.ru
 www.mos.ru
 kremlin.ru
 government.ru
-mil.ru
 customs.gov.ru
 pfr.gov.ru
 rkn.gov.ru
@@ -77,7 +76,6 @@ www.ucpir.ru
 dreamkas.ru
 www.e-portal.ru
 izhtender.ru
-imctax.parus-s.ru
 www.icentr.ru
 www.kartoteka.ru
 rsbis.ru/elektronnaya-podpis
